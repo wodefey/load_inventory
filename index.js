@@ -3,13 +3,13 @@ const fs = require('fs');
 const parse = require('csv-parse/lib/sync');
 const util = require("util")
 
-const data = fs.readFileSync('inventory-1_0.csv');
+const data = fs.readFileSync('inventory-1_1.csv');
 const rows = parse(data, {columns: true, trim: true});
 
 const inventory = [];
 
 for (var item = 0; item < rows.length; item++) {
-    var inv_item = {};
+    let inv_item = {};
 
 	inv_item.sku = item + 2;
 	
@@ -34,9 +34,17 @@ for (var item = 0; item < rows.length; item++) {
 
     inv_item.primary_supplier = rows[item]['Primary supplier'];
 
-    inv_item.cost = parseFloat(rows[item]['Cost']);
+    if (rows[item]['Cost']) {
+		inv_item.cost = parseFloat(rows[item]['Cost']);
+	} else {
+    	inv_item.cost = 0.0;
+	}
 
-    inv_item.price = parseFloat(rows[item]['Price']);
+    if (rows[item]['Price']) {
+		inv_item.price = parseFloat(rows[item]['Price']);
+	} else {
+		inv_item.price = 0.0;
+	}
 
     inv_item.weight = 1.0;
     inv_item.length = 1.0;
@@ -47,9 +55,13 @@ for (var item = 0; item < rows.length; item++) {
     inv_item.last_inventory = new Date(2019,1,23)
     inv_item.last_sold = new Date(2019,1,23)
 
-    inv_item.inventory_low = 0;
-    inv_item.inventory_par = 100;
-	inv_item.inventory = 100;
+	if (rows[item]['Inventory']) {
+		inv_item.inventory = parseFloat(rows[item]['Inventory']);
+	} else {
+		inv_item.inventory = 0.0;
+	}
+	inv_item.inventory_low = 0.0;
+    inv_item.inventory_par = Math.max(inv_item.inventory,100.0);
 	
     inventory.push(inv_item);
 }
@@ -85,3 +97,5 @@ for (var item = 0; item < rows.length; item++) {
 		client.close();
     }
 })();
+
+console.log('Finished');
